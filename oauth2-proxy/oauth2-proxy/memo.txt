@@ -1,0 +1,7 @@
+x provider: oidc
+x client-id: oauth2-proxy # staticClientsに設定したもの
+x client-secret: proxy
+x redirect-url: https://[minikubeのIP]/oauth2/callback # dexを使わない時と同じ
+x set-authorization-header: true # せっかくOIDCなので設定する
+x oidc-issuer-url: https://[dexのExternal IP]:5556
+x ssl-insecure-skip-verify: true # dexのTLS証明書が検証できないのでskip

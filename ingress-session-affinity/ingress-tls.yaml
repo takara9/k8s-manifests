@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-session
+  annotations:
+    kubernetes.io/ingress.class: 'nginx'
+    nginx.ingress.kubernetes.io/affinity: 'cookie'
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  tls:
+  - hosts:
+      - ingress.k8s3.labo.local
+    secretName: ingress-credential
+  rules:
+  - host: ingress.k8s3.labo.local
+    http:
+      paths:
+      - path: /session
+        pathType: Prefix
+        backend:
+          service:
+            name: session-ingress
+            port:
+              number: 9080

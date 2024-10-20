@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rest-java
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rest-java
+  template:
+    metadata:
+      labels:
+        app: rest-java
+    spec:
+      containers:
+      - name: java
+        image: maho/rest-java:0.1
+        imagePullPolicy: Always        
+        readinessProbe:
+          httpGet:
+            path: /actuator/health/readiness
+            port: 8080
+          initialDelaySeconds: 30
+          timeoutSeconds: 3
+        livenessProbe:
+          httpGet:
+            path: /actuator/health/liveness
+            port: 8080
+          initialDelaySeconds: 30
+          timeoutSeconds: 3
+          failureThreshold: 5

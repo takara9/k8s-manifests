@@ -1,0 +1,30 @@
+#
+#  コントローラー抜きでポッドを
+#  サービスで公開するサンプル
+#
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: service-for-pods
+spec:
+  selector:
+    app: pd-tools
+  ports:
+  - protocol: TCP
+    port: 3000
+  type: NodePort
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-with-service
+  labels:
+    app: pd-tools
+spec:
+  containers:
+  - name: pd-tools
+    image: maho/pd-tools:0.1
+    imagePullPolicy: Always
+    ports:
+      - containerPort: 3000

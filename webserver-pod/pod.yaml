@@ -1,0 +1,14 @@
+#
+#  コントローラー抜きでポッドを起動
+#
+apiVersion: v1
+kind: Pod
+metadata:
+  name: stand-alone-pod
+spec:
+  containers:
+  - name: pd-tools
+    image: maho/pd-tools:0.1
+    imagePullPolicy: Always
+    ports:
+      - containerPort: 3000

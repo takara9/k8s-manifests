@@ -1,0 +1,90 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: oauth2-proxy
+  namespace: oauth2-proxy  
+  labels:
+    app: oauth2-proxy
+
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: oauth2-proxy    
+  template:
+    metadata:
+      labels:
+        app: oauth2-proxy        
+    spec:
+      serviceAccountName: oauth2-proxy
+      containers:
+      - name: oauth2-proxy
+        image: "quay.io/oauth2-proxy/oauth2-proxy:v7.2.1"
+        args:
+          - --config=/etc/oauth2-proxy/oauth2-proxy.cfg
+          - --set-authorization-header=true
+          #- --scope=openid profile email groups
+          #- --upstream=http://webapl-pd.default:3000
+          #- --reverse-proxy=true
+          #- --pass-access-token
+          #- --pass-authorization-header
+          #- --pass-basic-auth
+          #- --pass-host-header
+          #- --pass-user-headers
+          #- --set-xauthrequest=true	  
+          #- --prefer-email-to-user	  
+        imagePullPolicy: IfNotPresent	
+        env:
+        - name: OAUTH2_PROXY_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name:  oauth2-proxy
+              key: client-id
+        - name: OAUTH2_PROXY_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name:  oauth2-proxy
+              key: client-secret
+        - name: OAUTH2_PROXY_COOKIE_SECRET
+          valueFrom:
+            secretKeyRef:
+              name:  oauth2-proxy
+              key: cookie-secret
+        ports:
+          - containerPort: 4443
+            name: https
+            protocol: TCP
+          - containerPort: 9100
+            protocol: TCP
+            name: metrics
+        livenessProbe:
+          httpGet:
+            path: /ping
+            port: 9100
+            scheme: HTTP
+          initialDelaySeconds: 0
+          timeoutSeconds: 1
+        readinessProbe:
+          httpGet:
+            path: /ping
+            port: 9100
+            scheme: HTTP
+          initialDelaySeconds: 0
+          timeoutSeconds: 1
+          successThreshold: 1
+          periodSeconds: 10
+        volumeMounts:
+        - name: oauth2-proxy-config
+          mountPath: /etc/oauth2-proxy	  
+        - name: oauth2-proxy-tls
+          mountPath: /etc/oauth2-proxy/certs
+      volumes:
+      - name: oauth2-proxy-config
+        configMap:
+          name: oauth2-proxy      
+          defaultMode: 420
+      - name: oauth2-proxy-tls
+        secret:
+          secretName: oauth2-proxy.tls
+
+

@@ -1,0 +1,92 @@
+
+
+ 59 func (r *MemcachedReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+ 60     log := ctrllog.FromContext(ctx)
+ 61
+ 62	// Fetch the Memcached instance
+ 63	memcached := &cachev1alpha1.Memcached{}
+ 64	err := r.Get(ctx, req.NamespacedName, memcached)
+ 65	if err != nil {
+ 66	    if errors.IsNotFound(err) {
+pass
+ 77	
+ 78	// Check if the deployment already exists, if not create a new one
+ 79	found := &appsv1.Deployment{}
+ 80	err = r.Get(ctx, types.NamespacedName{Name: memcached.Name, Namespace: memcached.Namespace}, found)
+ 81	if err != nil && errors.IsNotFound(err) {
+ 82     	    // Define a new deployment
+ 83  	    dep := r.deploymentForMemcached(memcached)
+ 84	    log.Info("Creating a new Deployment", "Deployment.Namespace", dep.Namespace, "Deployment.Name", dep.Name)
+ 85	    err = r.Create(ctx, dep)
+pass-----
+ 97   	 // Ensure the deployment size is the same as the spec
+ 98      size := memcached.Spec.Size
+ 99	 if *found.Spec.Replicas != size {
+100	    found.Spec.Replicas = &size
+101	    err = r.Update(ctx, found)
+pass-----
+135	return ctrl.Result{}, nil
+136 }
+
+-----------------
+
+   138	// deploymentForMemcached returns a memcached Deployment object
+   139	func (r *MemcachedReconciler) deploymentForMemcached(m *cachev1alpha1.Memcached) *appsv1.Deployment {
+   140		ls := labelsForMemcached(m.Name)
+   141		replicas := m.Spec.Size
+   142	
+   143		dep := &appsv1.Deployment{
+   144			ObjectMeta: metav1.ObjectMeta{
+   145				Name:      m.Name,
+   146				Namespace: m.Namespace,
+   147			},
+   148			Spec: appsv1.DeploymentSpec{
+   149				Replicas: &replicas,
+   150				Selector: &metav1.LabelSelector{
+   151					MatchLabels: ls,
+   152				},
+   153				Template: corev1.PodTemplateSpec{
+   154					ObjectMeta: metav1.ObjectMeta{
+   155						Labels: ls,
+   156					},
+   157					Spec: corev1.PodSpec{
+   158						Containers: []corev1.Container{{
+   159							Image:   "memcached:1.4.36-alpine",
+   160							Name:    "memcached",
+   161							Command: []string{"memcached", "-m=64", "-o", "modern", "-v"},
+   162							Ports: []corev1.ContainerPort{{
+   163								ContainerPort: 11211,
+   164								Name:          "memcached",
+   165							}},
+   166						}},
+   167					},
+   168				},
+   169			},
+   170		}
+   171		// Set Memcached instance as the owner and controller
+   172		ctrl.SetControllerReference(m, dep, r.Scheme)
+   173		return dep
+   174	}
+   175	
+   176	// labelsForMemcached returns the labels for selecting the resources
+   177	// belonging to the given memcached CR name.
+   178	func labelsForMemcached(name string) map[string]string {
+   179		return map[string]string{"app": "memcached", "memcached_cr": name}
+   180	}
+   181	
+   182	// getPodNames returns the pod names of the array of pods passed in
+   183	func getPodNames(pods []corev1.Pod) []string {
+   184		var podNames []string
+   185		for _, pod := range pods {
+   186			podNames = append(podNames, pod.Name)
+   187		}
+   188		return podNames
+   189	}
+   190	
+   191	// SetupWithManager sets up the controller with the Manager.
+   192	func (r *MemcachedReconciler) SetupWithManager(mgr ctrl.Manager) error {
+   193		return ctrl.NewControllerManagedBy(mgr).
+   194			For(&cachev1alpha1.Memcached{}).
+   195			Owns(&appsv1.Deployment{}).
+   196			Complete(r)
+   197	}

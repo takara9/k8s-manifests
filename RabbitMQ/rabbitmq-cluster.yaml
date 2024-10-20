@@ -1,0 +1,35 @@
+apiVersion: rabbitmq.com/v1beta1
+kind: RabbitmqCluster
+metadata:
+  name: rmq
+spec:
+  replicas: 3
+  # プラグイン
+  rabbitmq:
+    additionalPlugins:
+      - rabbitmq_top
+      - rabbitmq_prometheus
+  # サービス公開範囲（内部／外部）
+  service:
+    type: LoadBalancer
+  # CPUとメモリの要求値と上限値
+  resources:
+    requests:
+      cpu: 800m
+      memory: 2Gi
+    limits:
+      cpu: 800m
+      memory: 2Gi
+  # ポッドの配置（ポッドを各ノードに分散させる）
+  affinity:
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values:
+                - rmq
+          topologyKey: kubernetes.io/hostname

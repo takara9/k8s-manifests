@@ -1,0 +1,13 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: ServiceEntry
+metadata:
+  name: webapl5
+spec:
+  hosts:
+  - webapl5.default.k8s2.labo.local
+  ports:
+  - number: 8080
+    name: http
+    protocol: HTTP
+  resolution: DNS
+  location: MESH_EXTERNAL

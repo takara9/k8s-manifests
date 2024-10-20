@@ -1,0 +1,8 @@
+#nameSuffix: -dev
+
+resources:
+- op-sa.yaml
+- op-cm.yaml
+- op-secret.yaml
+#- op-service.yaml
+- op-deploy.yaml

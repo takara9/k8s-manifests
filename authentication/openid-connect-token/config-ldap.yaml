@@ -1,0 +1,62 @@
+# OpenID Connect サービスの設定
+issuer: https://dex.labo.local:5556/
+storage:
+  type: sqlite3
+  config:
+    file: examples/dex.db
+
+# Web画面
+web:
+  https: 0.0.0.0:5556
+  tlsCert: /dex/dex/examples/k8s/ssl/cert.pem
+  tlsKey:  /dex/dex/examples/k8s/ssl/key.pem
+
+# 上位IDプロバイダー
+connectors:
+- type: ldap
+  name: OpenLDAP
+  id: ldap
+  config:
+    host: ldap.labo.local:389
+    insecureNoSSL: true
+    bindDN: cn=Manager,dc=labo,dc=local
+    bindPW: $BINDPW
+    usernamePrompt: K8s userid
+
+    userSearch:
+      baseDN: ou=people,dc=labo,dc=local
+      filter: "(objectClass=person)"
+      username: mail
+      idAttr: DN
+      emailAttr: mail
+      nameAttr: mail
+      preferredusernameAttr: cn
+
+    groupSearch:
+      baseDN: ou=group,dc=labo,dc=local
+      filter: "(|(objectClass=posixGroup)(objectClass=group))"
+      userMatchers:
+       - groupAttr: gidNumber
+         userAttr: gidNumber
+      nameAttr: cn
+
+# OAuth2の設定
+oauth2:
+  skipApprovalScreen: true
+
+
+# クライアントアプリの登録
+staticClients:
+- id: example-app
+  redirectURIs:
+  - 'http://apl.labo.local:5555/callback'
+  name: 'Example App'
+  secret: ZXhhbXBsZS1hcHAtc2VjcmV0
+
+- id: kubernetes
+  redirectURIs:
+  - 'http://localhost:8000'
+  name: 'Kubernetes'
+  secret: ZXhhbXBsZS1hcHAtc2VjcmV0
+
+

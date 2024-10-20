@@ -1,0 +1,19 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: test-local-disk
+
+spec:
+  containers:
+    - name: my-ubuntu
+      image: maho/my-ubuntu:0.1
+      command: ["tail", "-f", "/dev/null"]
+     
+      volumeMounts:
+      - mountPath: /data
+        name: local-volume
+
+  volumes:
+  - name: local-volume
+    emptyDir: {}

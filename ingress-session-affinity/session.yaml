@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: session-deployment-ingress
+spec:
+  replicas: 10
+  selector:
+    matchLabels:
+      app: session-ingress
+  template:
+    metadata:
+      labels:
+        app: session-ingress
+    spec:
+      containers:
+        - image: 'maho/session-test:1.1'
+          name: session-ingress
+          ports:
+            - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: session-ingress
+spec:
+  selector:
+    app: session-ingress
+  ports:
+    - port: 9080
+      targetPort: 80

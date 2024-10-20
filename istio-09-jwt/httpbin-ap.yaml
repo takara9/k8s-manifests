@@ -1,0 +1,35 @@
+#
+# Istio イングレスゲートウェイに、アクセス制御を設定
+#   OAuth2認証によって取得したJWTをヘッダーに持たないリクエストを拒否する。
+#
+#   参考 https://istio.io/latest/docs/reference/config/security/authorization-policy/
+#
+apiVersion: "security.istio.io/v1beta1"
+kind: "AuthorizationPolicy"
+metadata:
+  name: "frontend-ingress"
+  namespace: istio-system
+spec:
+  selector:
+    matchLabels:
+      istio: ingressgateway
+  action: DENY
+  rules:
+  - from:
+    #
+    # JWTトークンを持たないリクエストはアクセス禁止
+    # 設定の説明は以下のURLを参照のこと
+    #  https://istio.io/latest/docs/reference/config/security/authorization-policy/#Source
+    #  https://istio.io/latest/docs/reference/config/security/conditions/
+    #
+    - source:
+        notRequestPrincipals: ["*"]
+    #
+    # CORS (Cross-Origin Resource Sharing) の際に発生するCors preflight チェックで
+    # リクエストが発生するOPTIONSを通過させるために、以下の設定を加え、禁止するメソッドを
+    # 明示的に指定する。
+    #
+    to:
+    - operation:
+        methods: ["GET","POST","PUT","DELETE","HEAD"]
+

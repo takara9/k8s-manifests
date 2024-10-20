@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: proxy-configmap
+  namespace: kube-system
+data:
+  192.168.1.240: kube-system/haproxy-ingress
+  192.168.1.241: rook-ceph/rook-ceph-mgr-dashboard-external-https

@@ -1,0 +1,13 @@
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaTopic
+metadata:
+   name: my-topic3   # トピックの名前
+   labels:
+     strimzi.io/cluster: my-cluster  # クラスタ名
+spec:
+   partitions: 1     # 分割の数
+   replicas: 3       # コピー（レプリカ）の数
+   config:
+     retention.ms: 3600000      # データ保持時間 1h
+     segment.bytes: 1073741824  # = 1GiB 
+

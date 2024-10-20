@@ -1,0 +1,38 @@
+## サービス(type NodePort)
+---
+## デプロイメント 
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pd-tools
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pdt1
+  template:
+    metadata:
+      labels:
+        app: pdt1
+    spec:
+      containers:
+      - name: pd-tools
+        image: maho/pd-tools:0.1
+        imagePullPolicy: Always
+        ports:
+          - containerPort: 3000
+      nodeName: node4
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pd-tools
+spec:
+  selector:
+    app: pdt1
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 3000
+    nodePort: 30300
+  type: NodePort

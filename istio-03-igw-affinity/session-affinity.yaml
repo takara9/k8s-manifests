@@ -1,0 +1,12 @@
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: session
+spec:
+  host: session-svc
+  trafficPolicy:
+    loadBalancer:
+      consistentHash:
+        httpCookie:
+          name: PHPSESSID
+          ttl: 0s

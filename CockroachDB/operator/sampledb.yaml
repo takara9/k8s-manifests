@@ -1,0 +1,28 @@
+apiVersion: crdb.cockroachlabs.com/v1alpha1
+kind: CrdbCluster
+metadata:
+  name: my-crdb
+spec:
+  dataStore:
+    pvc:
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: "60Gi"
+        volumeMode: Filesystem
+  resources:
+    requests:
+      cpu: 500m
+      memory: 2Gi
+    limits:
+      cpu: 2
+      memory: 8Gi
+  tlsEnabled: false
+  image:
+    name: cockroachdb/cockroach:v21.2.5
+  nodes: 3
+  # affinityは実装されていないので、必要な時はStatefulSetでデプロイする。
+    
+

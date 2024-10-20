@@ -1,0 +1,35 @@
+#
+# Nginx サーバーをデプロイするマニフェスト
+#　 Nginxのデフォルトの画面を表示
+#
+
+## サービス
+apiVersion: v1
+kind: Service
+metadata:
+  name: webserver1
+spec:
+  selector:
+    app: web1
+  ports:
+  - protocol: TCP
+    port: 80
+---
+## デプロイメント 
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webserver1
+spec:
+  replicas: 3
+  selector:           # これは deployment - pod 対応用
+    matchLabels:
+      app: web1
+  template:           # ここからポッド・テンプレート
+    metadata:
+      labels:
+        app: web1     # ポッドのラベル
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:latest

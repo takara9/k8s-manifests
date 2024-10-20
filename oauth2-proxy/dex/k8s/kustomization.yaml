@@ -1,0 +1,15 @@
+#nameSuffix: -dev
+
+resources:
+- dex-ns.yaml
+- dex-github.yaml
+- dex-sa.yaml
+- dex-rbac.yaml
+- dex-secret.yaml
+#- dex-cm.yaml
+#- dex-cm-oauth2-proxy.yaml
+- dex-cm-multi.yaml
+- dex-svc.yaml
+- dex-deploy.yaml
+
+

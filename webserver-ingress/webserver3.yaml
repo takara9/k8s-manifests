@@ -1,0 +1,57 @@
+---
+## デプロイメント 
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webserver3
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: webserver3
+  template:
+    metadata:
+      labels:
+        app: webserver3
+    spec:
+      containers:
+        - name: webserver3
+          image: maho/webapl3:0.1
+          imagePullPolicy: Always # これ重要
+          ports:
+            - containerPort: 80
+---
+## サービス
+apiVersion: v1
+kind: Service
+metadata:
+  name: webserver3
+spec:
+  selector:
+    app: webserver3
+  ports:
+  - protocol: TCP
+    targetPort: 80
+    port: 80
+---
+## Ingress
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: webserver3
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    kubernetes.io/ingress.class: 'nginx'
+    nginx.ingress.kubernetes.io/affinity: 'cookie'
+spec:
+  rules:
+  - host: ingress.k8s3.labo.local
+    http:
+      paths:
+      - path: /webserver3
+        pathType: Prefix
+        backend:
+          service:
+            name: webserver3
+            port:
+              number: 80

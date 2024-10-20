@@ -1,0 +1,46 @@
+#
+#
+#
+
+---
+## デプロイメント 
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webserver1
+spec:
+  replicas: 3
+  selector:           # これは deployment - pod 対応用
+    matchLabels:
+      app: web1
+  template:           # ここからポッド・テンプレート
+    metadata:
+      labels:
+        app: web1      # ポッドのラベル
+    spec:
+      containers:
+      #- name: nginx
+      #  image: nginx:latest
+      containers:
+      - image: docker.io/kennethreitz/httpbin
+        imagePullPolicy: IfNotPresent
+        name: httpbin
+        ports:
+        - containerPort: 80
+---
+## サービス
+apiVersion: v1
+kind: Service
+metadata:
+  name: webserver1
+spec:
+  selector:
+    app: web1
+  ports:
+  - name: http
+    protocol: TCP
+    port: 80
+  - name: https
+    protocol: TCP
+    port: 443
+  type: LoadBalancer

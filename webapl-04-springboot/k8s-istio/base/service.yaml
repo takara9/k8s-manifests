@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-java
+  labels:
+    app: webjava
+spec:
+  ports:
+  - port: 8080
+    name: http
+  selector:
+    app: webjava

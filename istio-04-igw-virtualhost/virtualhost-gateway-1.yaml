@@ -1,0 +1,30 @@
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: svc1-gateway
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - "svc1.labo.local"
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: svc1
+spec:
+  hosts:
+  - "svc1.labo.local"
+  gateways:
+  - svc1-gateway
+  http:
+  - route:
+    - destination:
+        host: webapl1
+        port:
+          number: 8000

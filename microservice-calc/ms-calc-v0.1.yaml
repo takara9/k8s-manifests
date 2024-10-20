@@ -1,0 +1,34 @@
+#
+# 計算機マイクロサービス
+#
+## サービス
+apiVersion: v1
+kind: Service
+metadata:
+  name: ms_calculator
+spec:
+  selector:
+    app: ms_calc
+  ports:
+  - protocol: TCP
+    port: 5000
+  type: ClusterIP
+---
+## デプロイメント 
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ms_calculator
+spec:
+  replicas: 1
+  selector:           # これは deployment - pod 対応用
+    matchLabels:
+      app: ms_calc
+  template:           # ここからポッド・テンプレート
+    metadata:
+      labels:
+        app: ms_calc  # ポッドのラベル
+    spec:
+      containers:
+      - name: calculator
+        image: maho/calculator:0.1

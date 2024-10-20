@@ -1,0 +1,8 @@
+resources:
+  - namespace.yml
+  - role-base-access-ctl.yml
+  - service-account.yml
+  - daemonset.yml
+  
+
+

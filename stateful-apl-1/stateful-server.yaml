@@ -1,0 +1,68 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: rbd-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  #storageClassName: rook-ceph-block
+---
+## デプロイメント 
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: data-server1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: data-server1
+  template:
+    metadata:
+      labels:
+        app: data-server1
+    spec:
+      containers:
+      - name: my-ubuntu
+        image: maho/my-ubuntu:0.1
+        command: ["tail", "-f", "/dev/null"]
+        env:
+          - name: SECRET_USERNAME
+            valueFrom:
+              secretKeyRef:
+                name: datastore-auth
+                key: username
+          - name: SECRET_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: datastore-auth
+                key: password
+        volumeMounts:
+          - name: vol1
+            mountPath: /mnt
+          - name: config-vol
+            mountPath: /etc/datastore
+      volumes:
+      - name: vol1
+        persistentVolumeClaim:
+          claimName: rbd-pvc
+          readOnly: false
+      - name: config-vol
+        configMap:
+          name: datastore-config
+---
+## サービス
+apiVersion: v1
+kind: Service
+metadata:
+  name: data-server1
+spec:
+  selector:
+    app: data-server1
+  ports:
+  - protocol: TCP
+    port: 80

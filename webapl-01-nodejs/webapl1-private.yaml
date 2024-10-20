@@ -1,0 +1,39 @@
+#
+# アプリケーションのデプロイ
+#
+# サービス
+apiVersion: v1
+kind: Service
+metadata:
+  name: webapl1
+spec:
+  selector:
+    app: web
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 3000
+  type: LoadBalancer
+---
+## デプロイメント
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webapl1
+spec:
+  replicas: 1
+  selector:           # これは deployment - pod 対応用
+    matchLabels:
+      app: web
+  template:           # ここからポッド・テンプレート
+    metadata:
+      labels:
+        app: web      # ポッドのラベル
+    spec:
+      containers:
+      - name: webapl1
+        #image: harbor.labo.local/x/webapl1:1.0
+        image: maho/webapl1:1.5
+        imagePullPolicy: Always
+      imagePullSecrets:
+      - name: regcred

@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: webapl6
+  labels:
+    app: webapl6
+    service: webapl6
+spec:
+  ports:
+  - name: http
+    port: 80
+    targetPort: 8080
+  selector:
+    app: webapl6
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webapl6
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: webapl6
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: webapl6
+        version: v1
+    spec:
+      containers:
+      - name: webapl6
+        image: docker.io/maho/webapl6:0.2
+        imagePullPolicy: IfNotPresent
+        #command: [ 'cat', '/dev/zero'  ]
+        ports:
+        - containerPort: 80

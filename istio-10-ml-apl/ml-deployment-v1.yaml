@@ -1,0 +1,129 @@
+##
+## データキャッシュのデプロイメント
+##
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ml-cache        # (1)アプリ名をコントローラへ付与
+  namespace: istio-mla  # (2)Isito管理下の名前空間
+  labels:  
+    app: ml-cache
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ml-cache
+  template:             # ポッドの雛形
+    metadata:
+      labels:
+        app: ml-cache
+    spec:
+      containers:
+      - name: ml-cache
+        image: maho/ml-cache:1.0   # Docker Hubに登録した模擬アプリ
+        env:                       # 環境変数でポート番号を指定
+        - name: PORT
+          value: "5000"
+---
+##
+## データキャッシュのサービス
+## 
+apiVersion: v1
+kind: Service
+metadata:
+  name: ml-cache        # (1)アプリ名をサービスへ付与
+  namespace: istio-mla  # (2)Isito管理下の名前空間
+  labels:
+    app: ml-cache
+spec:
+  ports:
+  - name: http-cache    # Istioに必要な命名ルールに準じる
+    port: 5000          # サービスがリクエストを受けるポート番号
+    targetPort: 5000    # ポッド内へ転送するポート番号
+  type: ClusterIP
+  selector:
+    app: ml-cache
+---
+##
+## データをキャシュへロードするバッチ処理
+## 
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ml-load
+  namespace: istio-mla  # Isito管理下の名前空間
+spec:
+  template:
+    metadata:
+      labels:
+        app: ml-load
+      annotations:                         # (3)バッチジョブのポッドに対して
+        sidecar.istio.io/inject: "false"   # Istioのサイドカーの注入を禁止
+    spec:
+      containers:
+      - name: ml-load
+        image: maho/ml-load:1.0  # Docker Hubに登録した模擬アプリ
+        env:                     # 環境変数でアプリのポート番号を指定
+        - name: DATASTORE_HOST
+          value: ml-cache
+        - name: DATASTORE_PORT
+          value: "5000"
+      restartPolicy: OnFailure   # ポッドが異常終了したら再実行
+---
+## 
+## アプリケーションのヘッドV1　デプロイメント
+##   このバージョンはカウンターをアクセスしない
+##
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: istio-mla
+  name: ml-head-v1      # (4)二つのバージョンが同時に存在できるように
+                        # 名前末尾にv1を付加する
+  labels:
+    app: ml-head
+    version: v1
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: ml-head
+      version: v1
+  template:             # ポッドの雛形
+    metadata:
+      labels:
+        app: ml-head    # サービスのセレクタに使用する
+        version: v1     # (5)Istioの仮想サービスで利用
+    spec:
+      containers:
+      - name: ml-head
+        image: maho/ml-head:1.0   # Docker Hubに登録した模擬アプリ
+        env:                      # 環境変数でアプリ設定
+        - name: PORT
+          value: "8080"
+        - name: DATASTORE_HOST
+          value: ml-cache
+        - name: DATASTORE_PORT
+          value: "5000"
+---
+##
+## アプリケーションのヘッド　サービス
+##   アプリのV1,V2 で共通に使用して、
+##   IstioでV1とV2のトラフィック分割を実施する
+##
+apiVersion: v1
+kind: Service
+metadata:
+  name: ml-head
+  namespace: istio-mla  # Isito管理下の名前空間
+  labels:
+    app: ml-head
+    service: ml-head
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 80            # サービスを受けるポート番号
+    targetPort: 8080    # ポッドへ転送する時のポート番号
+  selector:
+    app: ml-head        # (6)ポッドを選択するセレクタにversionを含めない

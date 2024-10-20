@@ -1,0 +1,38 @@
+#
+# アプリケーションのデプロイ
+#
+# サービス
+apiVersion: v1
+kind: Service
+metadata:
+  name: webapl2
+spec:
+  selector:
+    app: web2
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8080
+  type: LoadBalancer
+---
+## デプロイメント 
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webapl2
+spec:
+  replicas: 1
+  selector:           # これは deployment - pod 対応用
+    matchLabels:
+      app: web2
+  template:           # ここからポッド・テンプレート
+    metadata:
+      labels:
+        app: web2     # ポッドのラベル
+    spec:
+      containers:
+      - name: webapl2
+        image: harbor.labo.local/tkr/webapl2:__BUILDNUMBER__
+        imagePullPolicy: Always
+      imagePullSecrets:
+      - name: regcred

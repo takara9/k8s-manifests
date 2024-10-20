@@ -1,0 +1,10 @@
+export KEYCLOAK_ADMIN="admin"
+export KEYCLOAK_ADMIN_PASSWORD="password"
+#export KC_PROXY="edge"
+export KC_HTTP_ENABLED="true"
+export KC_HTTPS_PORT="8443"
+export KC_HTTPS_CERTIFICATE_FILE="/keycloak/tls.crt"
+export KC_HTTPS_CERTIFICATE_KEY_FILE="/keycloak/tls.key"
+export KC_HOSTNAME="keycloak.labo.local"
+
+

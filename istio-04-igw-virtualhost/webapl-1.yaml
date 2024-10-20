@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: webapl1
+  labels:
+    app: webapl1
+    service: webapl1
+spec:
+  ports:
+  - name: http
+    port: 8000
+    targetPort: 3000
+  selector:
+    app: webapl1
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webapl1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: webapl1
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: webapl1
+        version: v1
+    spec:
+      containers:
+      - image: docker.io/maho/webapl1:1.0
+        imagePullPolicy: IfNotPresent
+        name: webapl1
+        ports:
+        - containerPort: 3000

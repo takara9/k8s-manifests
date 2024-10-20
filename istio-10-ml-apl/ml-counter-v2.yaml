@@ -1,0 +1,33 @@
+##
+## カウンターサービス V2
+##   実態は同じコンテナであるが、ラベルを変更してある
+## 
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ml-counter-v2
+  namespace: istio-mla  # Isito管理下の名前空間
+  labels:
+    app: ml-counter
+    version: v2
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: ml-counter   # サービスのセレクタに合わせる
+      version: v2       # バージョンを区別するため
+  template:
+    metadata:
+      labels:
+        app: ml-counter
+        version: v2
+    spec:
+      containers:
+      - name: ml-counter
+        image: maho/ml-counter:1.0   # Docker Hubに登録した模擬アプリ
+        imagePullPolicy: Always      # キャッシュを使わず毎回ダウンロードする
+        env:                         # 環境変数でアプリのポート番号を指定する
+        - name: PORT
+          value: "4000"
+
+

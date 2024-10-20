@@ -1,0 +1,73 @@
+# 永続ボリューム 
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-data-0
+spec:
+  #storageClassName: csi-rbd-sc
+  storageClassName: csi-cephfs-sc
+  accessModes:
+   #- ReadWriteOnce
+   - ReadWriteMany
+  resources:
+    requests:
+      storage: 2Gi
+---
+# MySQLサーバーデプロイメント
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql
+  labels:
+    app: mysql
+spec:
+  selector:
+    matchLabels:
+      app: mysql
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+      - name: side
+        image: maho/my-ubuntu:0.2
+        command: ["/bin/sh"]
+        args: ["-c", "while true; do timeout 0.5s yes >/dev/null; sleep 0.5s; done"]
+      - name: mysql
+        image: mysql:5.7
+        ports:
+        - containerPort: 3306
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          value: qwerty
+        volumeMounts:
+        - mountPath: /var/lib/mysql
+          subPath: mysql
+          name: data0
+        livenessProbe:
+          exec:
+            command: ["mysqladmin","-p$MYSQL_ROOT_PASSWORD","ping"]
+          initialDelaySeconds: 60
+          timeoutSeconds: 10
+      volumes:
+      - name: data0
+        persistentVolumeClaim:
+          claimName: mysql-data-0
+---
+# MySQLサーバー サービス
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-dpl
+  labels:
+    app: mysql
+spec:
+  type: NodePort
+  ports:
+  - port: 3306
+    nodePort: 30306
+  selector:
+    app: mysql
+

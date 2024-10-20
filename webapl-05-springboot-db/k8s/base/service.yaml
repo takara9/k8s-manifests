@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: rest-java
+  labels:
+    app: rest-java
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 8080
+  selector:
+    app: rest-java

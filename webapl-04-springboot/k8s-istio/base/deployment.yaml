@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-java
+  labels:
+    version: v1
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: webjava
+      version: v1      
+  template:
+    metadata:
+      labels:
+        app: webjava
+        version: v1
+    spec:
+      containers:
+      - name: webjava
+        image: maho/web-java:0.1
+        ports:
+        - containerPort: 8080
+        imagePullPolicy: Always
+        readinessProbe:
+          httpGet:
+            path: /actuator/health/readiness
+            port: 8080
+          initialDelaySeconds: 30
+          timeoutSeconds: 5
+        livenessProbe:
+          httpGet:
+            path: /actuator/health/liveness
+            port: 8080
+          initialDelaySeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3

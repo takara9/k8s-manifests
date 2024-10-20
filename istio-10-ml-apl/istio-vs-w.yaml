@@ -1,0 +1,44 @@
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: ml-head-vs
+  namespace: istio-mla
+spec:
+  hosts:
+  - svc4.labo.local    # 受け取るFQDNを指定
+  gateways:
+  - ml-gateway         # 受け取るゲートウェイを指定
+  http:
+  - match:
+    - uri:             # URIが一致したらルート設定で転送
+        exact: /phrase
+    route:
+    - destination:
+        host: ml-head  # (1)宛先サービス
+        port:
+          number: 80
+        subset: v1     # (2)宛先ルールのサブセットを参照
+      weight: 80       # トラフィック分割の割合
+    - destination:
+        host: ml-head  # (1)宛先サービス
+        port:
+          number: 80
+        subset: v2     # (3)宛先ルールのサブセットを参照
+      weight: 20       # トラフィック分割の割合
+---
+# 宛先ルール
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: ml-dr
+  namespace: istio-mla
+spec:
+  host: ml-head        # (1)宛先サービス
+  subsets:             
+  - name: v1           # (2)上記VSのsubset:から参照される
+    labels:
+      version: v1      # (4)ラベルの一致するポッドへ転送
+  - name: v2           # (3)上記VSのsubset:から参照される
+    labels:
+      version: v2      # (4)ラベルの一致するポッドへ転送
+      

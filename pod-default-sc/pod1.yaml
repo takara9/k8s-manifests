@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: mypod1
+spec:
+  containers:
+    - name: my-ubuntu
+      image: maho/my-ubuntu:0.1
+      command: ["tail", "-f", "/dev/null"]
+     
+      volumeMounts:
+      - mountPath: /data
+        name: local-volume
+
+  volumes:
+    - name: local-volume
+      persistentVolumeClaim:
+        claimName: myclaim

@@ -1,0 +1,31 @@
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: ml-counter-vs
+  namespace: istio-mla
+spec:
+  hosts:
+  - ml-counter            # (1)受け入れるFQDNを列挙
+  http:
+  - name: counter-routes 
+    match:
+    - uri:                # (2)カウンターアプリケーションのURI
+        exact: /count
+    route:
+    - destination:
+        host: ml-counter  # (3)転送先の宛先サービス
+        subset: v1        # (4)宛先ルールのサブセットを参照
+        
+---
+# 宛先ルール
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: ml-counter
+  namespace: istio-mla
+spec:
+  host: ml-counter  # (3)転送先の宛先サービス
+  subsets:                
+  - name: v1
+    labels:
+      version: v1   # (5)サービスが選別するポッドのラベルを記述

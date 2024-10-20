@@ -1,0 +1,16 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: rest-apl-gateway
+  namespace: istio-apl
+spec:
+  selector:
+    istio: ingressgateway  # Istio イングレスゲートウェイのラベル
+  servers:                 # サーバー仕様のリストを記述
+  - port:
+      name: rest-apl       # ポート番号ユニークな名前（オプション）
+      number: 80           # イングレスゲートウェイの公開ポート番号
+      protocol: HTTP       # プロトコル
+    hosts:                 
+    - "*"                  # ゲートウェイが受けるホスト名
+

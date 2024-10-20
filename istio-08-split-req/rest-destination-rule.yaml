@@ -1,0 +1,19 @@
+# 宛先ルール
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: rest-apl
+  namespace: istio-apl
+spec:
+  host: rest-apl          # 対象とするサービスの名前
+  trafficPolicy:          # トラフィック管理の一つで、本文中で解説
+    loadBalancer:         #   負荷分散のアルゴリズムを指定
+      simple: LEAST_CONN  
+                          # リクエスト・トラフィックの分割先を指定する
+  subsets:                #   分割割合などをバーチャルサービスに記述する
+  - name: v1              #   rest-virtual-service-weighted.yamlを参照
+    labels:
+      version: v1         #   ポッドのラベルでありrest-deployment-v1.yamlを参照
+  - name: v2
+    labels:
+      version: v2         #   同様に、rest-deployment-v2.yamlを参照

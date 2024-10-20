@@ -1,0 +1,28 @@
+## デプロイメント 
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rest-apl-v2
+  namespace: istio-apl  # Isito管理下の名前空間へ配置する
+  labels:               # コントローラーに対するラベルを設定
+    app: rest-apl              
+    version: v2
+spec:
+  replicas: 1           # ポッドのレプリカ数は１としておく  
+  selector:             # コントローラーとポッドのラベルの一致条件  
+    matchLabels:
+      app: rest-apl
+      version: v2
+  template:             # これ以降はコントローラーが起動するポッドの雛形
+    metadata:           # コントローラーとポッドの対応付のラベル
+      labels:
+        app: rest-apl
+        version: v2
+    spec:
+      containers:               # アプリケーションのコンテナの仕様
+      - name: rest-apl-v2
+        image: maho/webapl7:2.0  # Docker Hubに登録した模擬アプリ
+        imagePullPolicy: Always # キャッシュを使わず毎回ダウンロードする
+        env:                    # 環境変数　ポッドのサーバーポート番号を指定する
+        - name: PORT
+          value: "4009"

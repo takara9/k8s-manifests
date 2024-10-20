@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: local-pv-sts
+spec:
+  serviceName: local-service
+  replicas: 3
+  selector:
+    matchLabels:
+      app: local-test
+  template:
+    metadata:
+      labels:
+        app: local-test
+    spec:
+      containers:
+      - image: ubuntu:20.04
+        name: mypod 
+        command: ["tail", "-f", "/dev/null"]      
+        volumeMounts:
+        - name: local-vol
+          mountPath: /mnt
+  volumeClaimTemplates:
+  - metadata:
+      name: local-vol
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: local-storage
+      resources:
+        requests:
+          storage: 10Gi

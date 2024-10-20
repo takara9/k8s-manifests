@@ -1,0 +1,44 @@
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: ml-head-vs
+  namespace: istio-mla
+spec:
+  hosts:
+  - svc4.labo.local     # 受け取るFQDNを指定
+  gateways:
+  - ml-gateway          # 受け取るゲートウェイを指定
+  http:
+  - match:
+    - uri:              # URIが一致したらルート設定で転送
+        exact: /phrase
+    route:              # ルート設定
+    - destination:
+        host: ml-head   # 宛先のサービス
+        port:
+          number: 80
+        subset: v2      # DestinationRule spec.subsetを参照
+---
+# 宛先ルール
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: ml-dr
+  namespace: istio-mla
+spec:
+  host: ml-head         # 宛先のサービス
+  subsets:                
+  - name: v2            # 上記VSのsubset:から参照される
+    labels:
+      version: v2       # ポッドのラベル、デプロイのテンプレート参照
+  trafficPolicy:
+    connectionPool:
+      tcp:
+        maxConnections: 100
+      http:
+        http2MaxRequests: 1000
+        maxRequestsPerConnection: 10
+    outlierDetection:
+      consecutiveErrors: 7
+      interval: 5m
+      baseEjectionTime: 15m

@@ -1,0 +1,81 @@
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: dex
+  namespace: dex
+data:
+  config.yaml: |
+    ## 認証画面
+    issuer: https://dex.labo.local:32000/
+    storage:
+      type: kubernetes
+      config:
+        inCluster: true
+
+    ## Web画面
+    web:
+      https: 0.0.0.0:5556
+      tlsCert: /etc/dex/tls/tls.crt
+      tlsKey:  /etc/dex/tls/tls.key
+
+
+    # Options for controlling the logger.
+    logger:
+      level: "debug"
+      format: "text" # can also be "json"
+
+
+    ## 認証プロバイダーへの接続
+    connectors:
+    - type: ldap
+      name: OpenLDAP
+      id: ldap
+      config:
+        host: ldap.labo.local:389
+        insecureNoSSL: true
+
+        bindDN: $LDAP_BIND_DN
+        bindPW: $LDAP_BIND_PW
+        #bindDN: cn=Manager,dc=labo,dc=local
+        #bindPW: secret
+
+        usernamePrompt: Userid
+
+        userSearch:
+          baseDN: ou=people,dc=labo,dc=local
+          #filter: "(objectClass=person)"
+          username: mail
+          idAttr: DN
+          emailAttr: mail
+          nameAttr: mail
+          preferredusernameAttr: cn
+
+        groupSearch:
+          baseDN: ou=group,dc=labo,dc=local
+          #filter: "(|(objectClass=posixGroup)(objectClass=group))"
+          userMatchers:
+          - userAttr: gitNumber
+            groupAttr: gidNumber
+          nameAttr: cn
+
+    oauth2:
+      skipApprovalScreen: true
+
+    #
+    # アプリケーション側のコールバック先
+    #
+    staticClients:
+    - id: example-app
+      redirectURIs:
+      - 'http://apl.labo.local:5555/callback'
+      name: 'Example App'
+      secret: ZXhhbXBsZS1hcHAtc2VjcmV0
+    #
+    # OAuth2 Proxy
+    - id: oauth2-proxy
+      name: 'oauth2-proxy'    
+      redirectURIs:
+      - 'https://sso.labo.local:4443/oauth2/callback'
+      secret: ZXhhbXBsZS1hcHAtc2VjcmV0
+

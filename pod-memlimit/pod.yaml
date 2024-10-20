@@ -1,0 +1,17 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: test-mem-limit
+spec:
+  containers:
+    - name: my-ubuntu
+      image: maho/my-ubuntu:0.1
+      command: ["tail", "-f", "/dev/null"]      
+      resources:
+        requests:
+          memory: "128Mi"
+          cpu: "500m"
+        limits:
+          memory: "128Mi"
+          cpu: "500m"

@@ -1,0 +1,52 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: httpbin-gateway
+  namespace: oauth-apl
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - svc1.labo.local
+---
+#
+# サービスhttpbinへ転送する仮想サーバーURLとゲートウェイを関連づける
+#
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: httpbin
+  namespace: oauth-apl  
+spec:
+  hosts:
+  - svc1.labo.local
+  gateways:
+  - httpbin-gateway
+  http:
+  - route:
+    - destination:
+        host: httpbin
+        port:
+          number: 8000
+    #
+    # Cross-Origin Resource Sharing policy (CORS) を設定する
+    #  https://istio.io/latest/docs/reference/config/networking/virtual-service/#CorsPolicy
+    #  https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
+    #
+    corsPolicy:
+      maxAge: 10m
+      allowCredentials: false
+      allowHeaders:
+      - Authorization
+      allowMethods:
+      - GET
+      - POST
+      - OPTIONS
+      allowOrigin:
+      - '*'
+      

@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mongodb-auth
+type: kubernetes.io/basic-auth
+stringData:
+  username: root
+  password: t0p-Secret
+

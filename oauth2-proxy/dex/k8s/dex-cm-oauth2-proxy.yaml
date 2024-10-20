@@ -1,0 +1,81 @@
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: dex
+  namespace: dex
+data:
+  config.yaml: |
+    ## 認証画面
+    issuer: https://dex.labo.local:32000/
+    storage:
+      type: kubernetes
+      config:
+        inCluster: true
+
+    ## Web画面
+    web:
+      https: 0.0.0.0:5556
+      tlsCert: /etc/dex/tls/tls.crt
+      tlsKey:  /etc/dex/tls/tls.key
+
+
+    # Options for controlling the logger.
+    logger:
+      level: "debug"
+      format: "text" # can also be "json"
+
+
+    ## 認証プロバイダーへの接続
+    connectors:
+    - type: ldap
+      name: OpenLDAP
+      id: ldap
+      config:
+        host: ldap.labo.local:636
+        insecureNoSSL: false
+        insecureSkipVerify: true
+        rootCAData: 'LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUYyVENDQThHZ0F3SUJBZ0lVVXRRUFY5RU91MTZiSUhjY3hjZXY2NThIL2xVd0RRWUpLb1pJaHZjTkFRRU4KQlFBd2ZERUxNQWtHQTFVRUJoTUNTbEF4RGpBTUJnTlZCQWdNQlZSdmEzbHZNU2t3SndZRFZRUUxEQ0JEWlhKMAphV1pwWTJGMGFXOXVJRUYxZEdodmNtbDBlU0JUWlhKMmFXTmxjekVTTUJBR0ExVUVDZ3dKU0c5dFpTQk1ZV0p2Ck1SNHdIQVlEVlFRRERCVkliMjFsSUV4aFltOGdSVzUyYVhKdmJtMWxiblF3SGhjTk1qRXdNakk0TVRNeE5ERTUKV2hjTk16SXdNakV4TVRNeE5ERTVXakI4TVFzd0NRWURWUVFHRXdKS1VERU9NQXdHQTFVRUNBd0ZWRzlyZVc4eApLVEFuQmdOVkJBc01JRU5sY25ScFptbGpZWFJwYjI0Z1FYVjBhRzl5YVhSNUlGTmxjblpwWTJWek1SSXdFQVlEClZRUUtEQWxJYjIxbElFeGhZbTh4SGpBY0JnTlZCQU1NRlVodmJXVWdUR0ZpYnlCRmJuWnBjbTl1YldWdWREQ0MKQWlJd0RRWUpLb1pJaHZjTkFRRUJCUUFEZ2dJUEFEQ0NBZ29DZ2dJQkFOR3MxTWdPUkxBVzBKSk9YRzRSY0paegpPMzBoNHBqTTkxWXhnYWk1dkJ6YTBETW5ENERnL2pNU2lTMGIzT0Vwc2trSS9LbldSZnZraFVoVHZXdDJHajZrClN0Tjd2c0d0TnNqU2hRalV2UnRpVDV2UlViWkZqZ3k1QnM4U0o0MnBSbFpoZHd6NnRpUUJ3SXVHVFBZSTNEL0kKQW16dmZWY0JzaUEwSXg3RmxRbzFzR1FqcmJuRDhUbkMvWWpyTUphWlBETHdTN2JtMDVGYTY0Skx2b3Vub3lUZgpWalFBZFhaU3I4SHBhTkczRnl3SVhYNGtkb1pPTlh4QTFSTGxuSFRUNFpxUnBNMWl2dDZiSlY2QjR6VUJCNVFRCnRLcytoMDcwSW5zaXFubTlzTUlGKzloS2dZRXlnbXgwY0h3SXl1ckxlRTA0cGtCdTNDV0szb3VocFhLV2RpME4Kb3pGWTRmallnQ3Z1Wkl6ZDlPMVc1RWFncTZFOEtpS0pmRWJPb0hOSWR4OW5MTk5VSkorR2RON3F0ZHJQSjQzaQp4cjRxQ2dqU2VubU1ENlFCWXZtZVR6QjdnL0FESUtwYWVWRFZNSDZHZlhOMmxNZmpEeXdmaFVhN1RvMnpiNmtmCnprSmhjQkl6WS9ySXRlUDJUNXEzeE4xQmFoVVZQWXlieTVzeTlVY0ZDSHBVODROUTY0QVQyajA4VG1Va0MzN20KWDBlL21zWVc3Tmpqdzc0UEFtSkFPMmFlZ3NaMVdrQWhubnRJRkFmY3RGaG1IcjN5U1E3MmpjVjB0R0phcHNoNgpJb3drcE9ZYzRQVzFjdms5VVBoVytyaERxbW1HZFFGZDF0SEo5RjN6aHdjRGZOR2U2N2lrc2w1VkV6Y1d1dWppCllkT0ppMWZLMjlsKzhFbnQ0K3VqQWdNQkFBR2pVekJSTUIwR0ExVWREZ1FXQkJUOWxxT2pBNGpJc2JJaU5kcysKQjNrSGJpcEFkekFmQmdOVkhTTUVHREFXZ0JUOWxxT2pBNGpJc2JJaU5kcytCM2tIYmlwQWR6QVBCZ05WSFJNQgpBZjhFQlRBREFRSC9NQTBHQ1NxR1NJYjNEUUVCRFFVQUE0SUNBUUNjajNnQlNHZkNndHQ0NXNPeUNJUUZuNmZzCll0NWhTVEQxd3RnZFhzQkNnMWVUcytnSG9zN0lUK0tjMFZlUTF6VmRxVCt1eFhkOElCSnpoUEkvM2tTZ2UwY20KbXNUOUtIY0Z3QWZPZUZmUEg5Vzg3UWo4NjN0dGhtZ1g5Y0RrMzB2YWlIL3NwdnlpZGJ3ZU80SWsxUzhPbHJPUQp5bkxLVUhqL3UzZHNJRVRXYnRnSGNZT2Vqa24xRlY3dFBGQnc0R3ZxTUpQR2d2S0c0Zm9VR0JHWnVvbjU5UkhZCkl2ZkR2Qjl4RkJYeVRVZnY2Vll6R0lRMHRwa3RVbXJua2NOMGRUSloranlDell2TFRLQVlBN3hrUUVSNTZDQnIKYVNjaGdyajlUOThVK3VrQ1lSd1BnZnErWFkzQ1grN2RZbVFTTFdkLzdzVmsxQTV1eTc2ZWJFMEZJSmRqSlRrYQpva0NrZ040MEdjVFkxelY4M2VVK0doKzY1aTZmTjFNaFRTZVVYenRkdDI3dDFKQmtwU3hvcGFmcHpubmpNYnlaCnp0QjRaQTYxL1BGOHBucTFUWnV3SEwyQjE1a2hTTTIvVFAyVTI0RzBvTjBuNFNLTkJqT1M3K0REVUFjMVk3Q3gKWUhLbGNVOGE1bXFQcFVhdHB0WGtZUUlZZzJoM01HQi9sN2pIZCtKSG81RFNvSFJMcVkzT0pzbWVIU0V3OFdVTQoxSisxa044bGgzckVSNzZnNXVISkFXcXVGdlBJNmt2UW96VmI4ZHdpYXd6R0pqa1hKWHQ3cG5TNG90YXMyU1BECkJyNnNVdlJ6Tm4yNng4L0hjODBMNmpuVTFJZUdSczdkeElzRzJpREcxRkhMQWxQT21lSVVMYnZCendHNVpDU08KaVkrY3puUkZzMGJxMnBFaFZnPT0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo='
+
+        bindDN: $LDAP_BIND_DN
+        bindPW: $LDAP_BIND_PW
+
+        usernamePrompt: Userid
+
+        userSearch:
+          baseDN: ou=people,dc=labo,dc=local
+          #filter: "(objectClass=person)"
+          username: mail
+          idAttr: DN
+          emailAttr: mail
+          nameAttr: mail
+          preferredusernameAttr: cn
+
+        groupSearch:
+          baseDN: ou=group,dc=labo,dc=local
+          #filter: "(|(objectClass=posixGroup)(objectClass=group))"
+          userMatchers:
+          - userAttr: gitNumber
+            groupAttr: gidNumber
+          nameAttr: cn
+
+    oauth2:
+      skipApprovalScreen: true
+
+    #
+    # アプリケーション側のコールバック先
+    #
+    staticClients:
+    - id: example-app
+      redirectURIs:
+      - 'http://apl.labo.local:5555/callback'
+      name: 'Example App'
+      secret: ZXhhbXBsZS1hcHAtc2VjcmV0
+    #
+    # OAuth2 Proxy
+    - id: oauth2-proxy
+      name: 'oauth2-proxy'    
+      redirectURIs:
+      - 'https://sso.labo.local:4443/oauth2/callback'
+      secret: 6af3c2359973e42a5e95e28c2e97646c775936e1
+

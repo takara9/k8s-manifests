@@ -1,0 +1,8 @@
+resources:
+  - rest-namespace.yaml
+  - rest-deployment-v1.yaml
+  - rest-deployment-v2.yaml
+  - rest-service.yaml
+  - rest-destination-rule.yaml
+  - rest-virtual-service-weighted.yaml
+  - rest-gateway.yaml  

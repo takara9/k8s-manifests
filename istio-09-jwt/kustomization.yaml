@@ -1,0 +1,6 @@
+resources:
+  - httpbin-ns.yaml
+  - httpbin.yaml
+  - httpbin-gw-vs.yaml
+  - httpbin-ra.yaml
+  - httpbin-ap.yaml

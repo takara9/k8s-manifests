@@ -1,0 +1,2 @@
+MY_HOST=dex
+FQDN=dex.labo.local

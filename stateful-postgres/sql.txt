@@ -1,0 +1,341 @@
+CREATE SCHEMA myschema;
+
+スキーマ一覧の表示
+\dn
+
+現在のスキーマ表示
+select current_schema();
+
+スキーマを変更
+SET search_path = myschema;
+
+
+スキーマを指定したテーブルの作成
+
+CREATE TABLE myschema.利用者マスタ(
+  利用者ID char(5) not null,
+  氏名     char(5) not null,
+  primary key(利用者ID)
+);
+
+
+スキーマを省略したテーブルの作成
+
+CREATE TABLE 蔵書テーブル(
+  蔵書ID     char(5) not null,
+  タイトル   text    not null,
+  著者       text    not null,
+  出版社     text    not null,
+  発行年月日 date    not null,
+  ページ数   integer not null,
+  primary key(蔵書ID)
+);
+
+
+CREATE TABLE ジャンルマスタ(
+  ジャンルID  char(5)  not null,
+  ジャンル名  text     not null,
+  primary key(ジャンルID)
+);
+
+CREATE TABLE 蔵書ジャンル(
+  蔵書ID      char(5)  not null,
+  ジャンルID  char(5)  not null,
+  primary key(蔵書ID,ジャンルID)
+);
+
+CREATE TABLE 利用者マスタ(
+  利用者ID    char(5)  not null,
+  氏名        char(5)  not null,
+  primary key(利用者ID)
+);
+
+CREATE TABLE 貸出伝票テーブル(
+  貸出伝票ID  char(5)  not null,
+  利用者ID    char(5)  not null,
+  蔵書ID      char(5)  not null,
+  貸出日      date     not null,
+  返却日      date,
+  primary key(貸出伝票ID,利用者ID,蔵書ID)
+);
+
+
+
+
+外部キーの作成
+
+ALTER TABLE 蔵書ジャンル ADD FOREIGN KEY(蔵書ID)     REFERENCES 蔵書テーブル(蔵書ID);
+ALTER TABLE 蔵書ジャンル ADD FOREIGN KEY(ジャンルID) REFERENCES ジャンルマスタ(ジャンルID);
+ALTER TABLE 貸出伝票テーブル ADD FOREIGN KEY(利用者ID) REFERENCES 利用者マスタ(利用者ID);
+ALTER TABLE 貸出伝票テーブル ADD FOREIGN KEY(蔵書ID) REFERENCES 蔵書テーブル(蔵書ID);
+
+
+
+docker=# \d
+              List of relations
+  Schema  |       Name       | Type  | Owner  
+----------+------------------+-------+--------
+ myschema | ジャンルマスタ   | table | docker
+ myschema | 利用者マスタ     | table | docker
+ myschema | 蔵書ジャンル     | table | docker
+ myschema | 蔵書テーブル     | table | docker
+ myschema | 貸出伝票テーブル | table | docker
+(5 rows)
+
+
+
+docker=# \d myschema.ジャンルマスタ;
+              Table "myschema.ジャンルマスタ"
+   Column   |     Type     | Collation | Nullable | Default 
+------------+--------------+-----------+----------+---------
+ ジャンルid | character(5) |           | not null | 
+ ジャンル名 | text         |           | not null | 
+Indexes:
+    "ジャンルマスタ_pkey" PRIMARY KEY, btree ("ジャンルid")
+Referenced by:
+    TABLE "myschema."蔵書ジャンル"" CONSTRAINT "蔵書ジャンル_ジャンルid_fkey" FOREIGN KEY ("ジャンルid") REFERENCES myschema."ジャンルマスタ"("ジャンルid")
+
+docker=# \d myschema.利用者マスタ;
+              Table "myschema.利用者マスタ"
+  Column  |     Type     | Collation | Nullable | Default 
+----------+--------------+-----------+----------+---------
+ 利用者id | character(5) |           | not null | 
+ 氏名     | character(5) |           | not null | 
+Indexes:
+    "利用者マスタ_pkey" PRIMARY KEY, btree ("利用者id")
+Referenced by:
+    TABLE "myschema."貸出伝票テーブル"" CONSTRAINT "貸出伝票テーブル_利用者id_fkey" FOREIGN KEY ("利用者id") REFERENCES myschema."利用者マスタ"("利用者id")
+
+
+docker=# set search_path = myschema;
+SET
+docker=# select current_schema();
+ current_schema 
+----------------
+ myschema
+(1 row)
+
+docker=# \d
+              List of relations
+  Schema  |       Name       | Type  | Owner  
+----------+------------------+-------+--------
+ myschema | ジャンルマスタ   | table | docker
+ myschema | 利用者マスタ     | table | docker
+ myschema | 蔵書ジャンル     | table | docker
+ myschema | 蔵書テーブル     | table | docker
+ myschema | 貸出伝票テーブル | table | docker
+(5 rows)
+
+docker=# \d 蔵書ジャンル;
+               Table "myschema.蔵書ジャンル"
+   Column   |     Type     | Collation | Nullable | Default 
+------------+--------------+-----------+----------+---------
+ 蔵書id     | character(5) |           | not null | 
+ ジャンルid | character(5) |           | not null | 
+Indexes:
+    "蔵書ジャンル_pkey" PRIMARY KEY, btree ("蔵書id", "ジャンルid")
+Foreign-key constraints:
+    "蔵書ジャンル_ジャンルid_fkey" FOREIGN KEY ("ジャンルid") REFERENCES "ジャンルマスタ"("ジャンルid")
+    "蔵書ジャンル_蔵書id_fkey" FOREIGN KEY ("蔵書id") REFERENCES "蔵書テーブル"("蔵書id")
+
+
+セッションが切れると　デフォルトのスキーマ設定が失われる。
+
+docker=# \d 貸出伝票テーブル;
+server closed the connection unexpectedly
+	This probably means the server terminated abnormally
+	before or while processing the request.
+The connection to the server was lost. Attempting reset: Succeeded.
+psql (14.1, server 12.9)
+
+
+docker=# \d 貸出伝票テーブル;
+Did not find any relation named "貸出伝票テーブル".
+
+
+docker=# \d myschema.貸出伝票テーブル;
+             Table "myschema.貸出伝票テーブル"
+   Column   |     Type     | Collation | Nullable | Default 
+------------+--------------+-----------+----------+---------
+ 貸出伝票id | character(5) |           | not null | 
+ 利用者id   | character(5) |           | not null | 
+ 蔵書id     | character(5) |           | not null | 
+ 貸出日     | date         |           | not null | 
+ 返却日     | date         |           |          | 
+Indexes:
+    "貸出伝票テーブル_pkey" PRIMARY KEY, btree ("貸出伝票id", "利用者id", "蔵書id")
+Foreign-key constraints:
+    "貸出伝票テーブル_利用者id_fkey" FOREIGN KEY ("利用者id") REFERENCES myschema."利用者マスタ"("利用者id")
+    "貸出伝票テーブル_蔵書id_fkey" FOREIGN KEY ("蔵書id") REFERENCES myschema."蔵書テーブル"("蔵書id")
+
+
+
+テーブルとインデックスのリストを表示する。
+
+docker=# \d myschema.*;
+
+
+
+
+insert into 利用者マスタ(利用者ID,氏名) values ('U0001','ハヤト コバヤシ');
+insert into 利用者マスタ(利用者ID,氏名) values ('U0002','セイラ マス');
+insert into 利用者マスタ(利用者ID,氏名) values ('U0003','アムロ レイ');
+insert into 利用者マスタ(利用者ID,氏名) values ('U0004','ブライト ノア');
+insert into 利用者マスタ(利用者ID,氏名) values ('U0005','ミライ ヤシマ');
+insert into 利用者マスタ(利用者ID,氏名) values ('U0006','カイ シデン');
+
+
+
+docker=# insert into 利用者マスタ(利用者ID,氏名) values ('U0001','ハヤト コバヤシ');
+ERROR:  value too long for type character(5)
+
+カラムの長さを変更
+
+ALTER TABLE 利用者マスタ
+    ALTER COLUMN 氏名 TYPE char(10);
+
+
+仮登録したデータを削除
+
+docker=# DELETE FROM 利用者マスタ WHERE 利用者ID = 'U0001';
+DELETE FROM 利用者マスタ WHERE 利用者ID = 'U0002';
+DELETE 1
+DELETE 1
+
+
+データを登録、最後の行でエラーが発生、利用者IDが重なっているため。
+
+docker=#
+insert into 利用者マスタ(利用者ID,氏名) values ('U0001','ハヤト コバヤシ');
+insert into 利用者マスタ(利用者ID,氏名) values ('U0002','セイラ マス');
+insert into 利用者マスタ(利用者ID,氏名) values ('U0003','アムロ レイ');
+insert into 利用者マスタ(利用者ID,氏名) values ('U0004','ブライト ノア');
+insert into 利用者マスタ(利用者ID,氏名) values ('U0005','ミライ ヤシマ');
+insert into 利用者マスタ(利用者ID,氏名) values ('U0005','カイ シデン');
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+ERROR:  duplicate key value violates unique constraint "利用者マスタ_pkey"
+DETAIL:  Key ("利用者id")=(U0005) already exists.
+
+
+利用者IDを修正して、もう一度登録、成功
+
+docker=# insert into 利用者マスタ(利用者ID,氏名) values ('U0006','カイ シデン');
+INSERT 0 1
+
+
+確認のためリストを表示
+
+docker=# select * from 利用者マスタ;
+ 利用者id |       氏名        
+----------+-------------------
+ U0001    | ハヤト コバヤシ  
+ U0002    | セイラ マス    
+ U0003    | アムロ レイ    
+ U0004    | ブライト ノア   
+ U0005    | ミライ ヤシマ   
+ U0006    | カイ シデン    
+(6 rows)
+
+
+
+ジャンルマスターの登録
+
+docker=#
+insert into ジャンルマスタ(ジャンルID,ジャンル名) values ('J0000','一般');
+insert into ジャンルマスタ(ジャンルID,ジャンル名) values ('J0001','教養');
+insert into ジャンルマスタ(ジャンルID,ジャンル名) values ('J0002','実用');
+insert into ジャンルマスタ(ジャンルID,ジャンル名) values ('J0003','専門');
+insert into ジャンルマスタ(ジャンルID,ジャンル名) values ('J0004','検定教科書・消費税非課税品・その他');
+insert into ジャンルマスタ(ジャンルID,ジャンル名) values ('J0005','婦人');
+insert into ジャンルマスタ(ジャンルID,ジャンル名) values ('J0006','学参I（小中）');
+insert into ジャンルマスタ(ジャンルID,ジャンル名) values ('J0007','学参II（高校）');
+insert into ジャンルマスタ(ジャンルID,ジャンル名) values ('J0008','児童');
+insert into ジャンルマスタ(ジャンルID,ジャンル名) values ('J0009','雑誌扱い');
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+
+結果の確認
+
+docker=# select * from ジャンルマスタ;
+ ジャンルid |             ジャンル名             
+------------+------------------------------------
+ J0000      | 一般
+ J0001      | 教養
+ J0002      | 実用
+ J0003      | 専門
+ J0004      | 検定教科書・消費税非課税品・その他
+ J0005      | 婦人
+ J0006      | 学参I（小中）
+ J0007      | 学参II（高校）
+ J0008      | 児童
+ J0009      | 雑誌扱い
+(10 rows)
+
+
+insert into 蔵書テーブル(ジャンルID,ジャンル名) values ('J0009','雑誌扱い');
+  蔵書ID     char(5) not null,
+  タイトル   text    not null,
+  著者       text    not null,
+  出版社     text    not null,
+  発行年月日 date    not null,
+  ページ数   integer not null,
+
+insert into 蔵書テーブル values ('Z0001','わたしとぼくのPL/pgSQL','目黒聖','インプレスR&D','2019-02-22',10);
+insert into 蔵書テーブル values ('Z0002','トヨタ生産方式 脱規模の経営をめざして','大野耐一','ダイヤモンド社','1978-05-25',232);
+insert into 蔵書テーブル values ('Z0003','エンジニアのための マネジメント キャリアパス','Camille Fournier','オライリー・ジャパン','2018-09-25',283);
+insert into 蔵書テーブル values ('Z0004','フェルミ推定の技術','高松智史','ソシム','2021-09-10',323);
+insert into 蔵書テーブル values ('Z0005','社長ウチにもCTOが必要です','日経BP総研','日経BP社','2017-05-22',309);
+
+
+
+
+docker=#
+insert into 蔵書テーブル values ('Z0002','トヨタ生産方式 脱規模の経営をめざして','大野耐一','ダイヤモンド社','1978-05-25',232);
+insert into 蔵書テーブル values ('Z0003','エンジニアのための マネジメント キャリアパス','Camille Fournier','オライリー・ジャパン','2018-09-25',283);
+insert into 蔵書テーブル values ('Z0004','フェルミ推定の技術','高松智史','ソシム','2021-09-10',323);
+insert into 蔵書テーブル values ('Z0005','社長ウチにもCTOが必要です','日経BP総研','日経BP社','2017-05-22',309);
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+INSERT 0 1
+
+
+
+docker=# select * from 蔵書テーブル;
+ 蔵書id |                   タイトル                   |       著者       |        出版社        | 発行年月日 | ページ数 
+--------+----------------------------------------------+------------------+----------------------+------------+----------
+ Z0001  | わたしとぼくのPL/pgSQL                       | 目黒聖           | インプレスR&D        | 2019-02-22 |       10
+ Z0002  | トヨタ生産方式 脱規模の経営をめざして        | 大野耐一         | ダイヤモンド社       | 1978-05-25 |      232
+ Z0003  | エンジニアのための マネジメント キャリアパス | Camille Fournier | オライリー・ジャパン | 2018-09-25 |      283
+ Z0004  | フェルミ推定の技術                           | 高松智史         | ソシム               | 2021-09-10 |      323
+ Z0005  | 社長ウチにもCTOが必要です                    | 日経BP総研       | 日経BP社             | 2017-05-22 |      309
+
+
+
+貸出伝票テーブル
+
+INSERT INTO 貸出伝票テーブル(貸出伝票ID,利用者ID,蔵書ID,貸出日) VALUES ('R0001','U0001','Z0001','2020-01-06');
+
+
+docker=# INSERT INTO 貸出伝票テーブル(貸出伝票ID,利用者ID,蔵書ID,貸出日) VALUES ('R0001','U0001','Z0001','2020-01-06');
+INSERT 0 1
+docker=# select * from 貸出伝票テーブル;
+ 貸出伝票id | 利用者id | 蔵書id |   貸出日   | 返却日 
+------------+----------+--------+------------+--------
+ R0001      | U0001    | Z0001  | 2020-01-06 | 
+
+
+
+

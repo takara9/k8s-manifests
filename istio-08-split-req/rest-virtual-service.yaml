@@ -1,0 +1,23 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: rest-apl-vs
+  namespace: istio-apl
+spec:
+  hosts:                # 対象とするFQDNを指定する
+  - "*"                 # ここでは任意のFQDNを受け入れる
+  gateways:
+  - rest-apl-gateway    # 連携するゲートウェイObjectを設定
+  http:                 # URIのマッチングと、サービスへ転送のため書換え実施
+  - match:              #  ここでは /version -> / へ変更
+    - uri:
+        prefix: "/version" 
+    rewrite:
+      uri: "/"        
+    route:              # ルート設定として、サービスrest-apl:8080 へ転送する
+    - destination:
+        host: rest-apl
+        port:
+          number: 8080
+
+

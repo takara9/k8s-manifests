@@ -1,0 +1,17 @@
+## サービス
+apiVersion: v1
+kind: Service
+metadata:
+  name: rest-apl       # この名前でポッドを代表するIPアドレスを取得
+  namespace: istio-apl # Isito管理下の名前空間へ配置する
+  labels:
+    app: rest-apl
+    service: rest-apl
+spec:
+  ports:
+  - name: http         # ポートの名前  
+    port: 8080         # サービスが受けるポート番号で、ポッドのtargetPortへ転送
+    targetPort: 4009   # ポッド内のコンテナのサーバーポート番号
+  type: ClusterIP      # この設定でクラスタ内部だけにポートを開く
+  selector:            # コントローラーが起動したポッドとマッチする条件
+    app: rest-apl      # このキーと値を持ったポッドにリクエストを転送 

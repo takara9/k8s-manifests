@@ -1,0 +1,34 @@
+#
+# セッションとホスト名を表示する
+#
+apiVersion: v1
+kind: Service
+metadata:
+  name: webserver2
+spec:
+  selector:
+    app: webserver2
+  ports:
+    - port: 80
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webserver2
+spec:
+  replicas: 3
+  selector: 
+    matchLabels:
+      app: webserver2
+  template:
+    metadata:
+      labels:
+        app: webserver2
+    spec:
+      containers:
+        - name: webserver2
+          image: 'maho/webapl2:0.1'
+          ports:
+            - containerPort: 8080
+---

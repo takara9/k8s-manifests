@@ -1,0 +1,15 @@
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: ml-gateway
+  namespace: istio-mla
+spec:
+  selector:
+    istio: ingressgateway  # Istio イングレスゲートウェイのラベル
+  servers:                 # サーバー仕様のリストを記述
+  - port:
+      name: http           # 命名ルールに注意
+      number: 80           # イングレスゲートウェイの公開ポート番号
+      protocol: HTTP
+    hosts:                 
+    - "svc4.labo.local"   # リクエストを受け取るFQDN

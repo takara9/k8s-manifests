@@ -1,0 +1,87 @@
+## カウンター
+## デプロイメント
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ml-counter-v1
+  namespace: istio-mla  # Isito管理下の名前空間へ配置
+  labels:
+    app: ml-counter
+    version: v1
+spec:
+  replicas: 1
+  selector:             # コントローラーのポッド選択条件ラベル
+    matchLabels:
+      app: ml-counter
+      version: v1
+  template:             # ポッド雛形
+    metadata:
+      labels:
+        app: ml-counter # (1)サービスのセレクター用
+        version: v1     # (2)Istio Destination ruleの参照に利用
+    spec:
+      containers:
+      - name: ml-counter
+        image: maho/ml-counter:1.0   # Docker Hubに登録した模擬アプリ
+        env:                         # 環境変数　サーバーポート番号を指定
+        - name: PORT
+          value: "4000"
+---
+## カウンター
+## サービス
+apiVersion: v1
+kind: Service
+metadata:
+  name: ml-counter
+  namespace: istio-mla # Isito管理下の名前空間へ配置
+  labels:
+    app: ml-counter
+    service: ml-counter
+spec:
+  ports:
+  - name: http         # ポートの名前
+    port: 8080         # サービスが受けるポート番号
+    targetPort: 4000   # ポッドへ転送するポート番号
+  type: ClusterIP
+  selector:
+    app: ml-counter    # (3)一致するラベルのポッドへ転送
+
+---
+## 模擬アプリケーション V2
+## デプロイメント
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ml-head-v2
+  namespace: istio-mla  # Isito管理下の名前空間へ配置
+  labels:
+    app: ml-head
+    version: v2
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: ml-head
+      version: v2
+  template:             # 以下ポッドの雛形
+    metadata:
+      labels:
+        app: ml-head    # (3)サービスのセレクターの参照用
+        version: v2     # (4)Istio Destination ruleの参照用
+    spec:
+      containers:
+      - name: ml-head
+        image: maho/ml-head:2.0 # Docker Hubに登録した模擬アプリ
+        env:                   
+        - name: PORT
+          value: "8080"
+        - name: DATASTORE_HOST
+          value: ml-cache
+        - name: DATASTORE_PORT
+          value: "5000"
+        - name: COUNTER_HOST    # (5)カウンターアクセス用環境変数を追加
+          value: ml-counter
+        - name: COUNTER_PORT
+          value: "8080"
+
+

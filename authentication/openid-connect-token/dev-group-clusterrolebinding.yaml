@@ -1,0 +1,19 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: developer
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: developer
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  name: developer
+- apiGroup: rbac.authorization.k8s.io
+  kind: User
+  name: "takara9@gmail.com"
+- apiGroup: rbac.authorization.k8s.io
+  kind: User
+  name: "Maho Takara"
+  
